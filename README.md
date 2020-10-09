@@ -66,3 +66,29 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 ### `yarn build` fails to minify
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+
+#Login Page:
+
+Steps followed for firebase access:
+1. Enabled firebase authentication email and password in the firebase account.
+2. Created firebase.js file with the config content from the firebase account.
+3. In the firebase.js file initialized the app with firebase config, initialized the db and auth(// this gives us a variable , that we can use to handle all the signing in and everything like that).
+4. In Login.js file , tried accessing the user login and register functionalities. Used auth.createUserWithEmailAndPassword() -to register account.  Inside this if the auth is correct (if the account is successfully create a user I firebase db with a email and password, we are redirecting/ pushing  the user to main page.
+5. AND auth.signInWithEmailAndPassword() to sign in the account.(if the user entered a correct email and password, we are redirecting/ pushing  the user to main page).
+
+
+1. Now accessing the auth details in the app.js file
+2. Store the user inside of our react context API (so inside of our store), so goto our reducer.js file and add a user in the initial state.
+3. Go back to App.js file , when the user logs in, we need the dispatch. The information of the user will be stored in to the data layer(every time the user logs in, then it will shoot the user in to the data layer i.e., dispatch({ type: ’SET_USER’, user: authUser}), and if the user logs out, then it will eradicate/ remove the user from the data layer i.e,.dispatch({ type: ’SET_USER’, user: null})
+
+#Deployment
+
+sudo npm i -g firebase-tools
+firebase init
+select -> Hosting 
+What do you want to use as your public directory? build
+Configure as a single-page app (rewrite all urls to /index.html)? (y/N) y
+
+npm run build (whenever you do changes to the project, run this command)
+firebase deploy
+
