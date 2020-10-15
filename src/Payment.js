@@ -6,11 +6,10 @@ import { Link, useHistory } from "react-router-dom";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import CurrencyFormat from "react-currency-format";
 import { getBasketTotal } from "./reducer";
-import axios from './axios';
-
+import axios from "./axios";
+import { db } from "./firebase"; 
 
 function Payment() {
-    
   const [{ basket, user }, dispatch] = useStateValue();
   const history = useHistory();
 
@@ -27,37 +26,56 @@ function Payment() {
   useEffect(() => {
     // generate the special secret key which allows is to charge a customer
     const getClientSecret = async () => {
-        const response = await axios({
-            method: 'post',
-            // stripe expects the total in a currencies sub units
-            url: `/payments/create?total=${getBasketTotal(basket) * 100}`
-        });
-        setClientSecret(response.data.clientSecret);
+      const response = await axios({
+        method: "post",
+        // stripe expects the total in a currencies sub units
+        url: `/payments/create?total=${getBasketTotal(basket) * 100}`,
+      });
+      setClientSecret(response.data.clientSecret);
     };
 
     getClientSecret();
   }, [basket]);
-
+  console.log("THE secret api IS====>", clientSecret);
+  console.log('user =====>', user);
 
   const handleSubmit = async (event) => {
     // do all the fancy stripe stuff
     event.preventDefault(); // stops from refreshing
     setProcessing(true); // stops the user from clicking the buy button more than once.- i.e, one click , boom it will disable the button
 
-    const payload = await stripe.confirmCardPayment(clientSecret,{
+    const payload = await stripe
+      .confirmCardPayment(clientSecret, {
         payment_method: {
-            card: elements.getElement(CardElement)
-        }
-    }).then(({paymentIntent }) => {
+          card: elements.getElement(CardElement),
+        },
+      })
+      .then(({ paymentIntent }) => {
         // paymentIntent = payment confirmation
+
+        db
+        .collection('users')
+        .doc(user?.uid)
+        .collection('orders')
+        .doc(paymentIntent.id)
+        .set({
+          basket: basket,
+          amount: paymentIntent.amount,
+          created: paymentIntent.created
+        })
+        // using nosql data structure
+
         setSucceeded(true);
         setError(null);
         setProcessing(false);
 
-        history.replace('/orders')
-    })
-  };
+        dispatch({
+          type: 'EMPTY_BASKET',
+        })
 
+        history.replace("/orders");
+      });
+  };
 
   const handleChange = (event) => {
     // listen for changes in the CardElement
